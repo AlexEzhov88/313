@@ -3,13 +3,13 @@ package ru.kata.spring.boot_security.demo.controller;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.ui.ModelMap;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
-import ru.kata.spring.boot_security.demo.model.Role;
 import ru.kata.spring.boot_security.demo.model.User;
 import ru.kata.spring.boot_security.demo.service.RoleService;
 import ru.kata.spring.boot_security.demo.service.UsersService;
-import java.util.Set;
+import javax.validation.Valid;
 
 @Controller
 @RequestMapping("/admin")
@@ -38,14 +38,12 @@ public class AdminController {
     }
 
     @PostMapping("/createNew")
-    public String createUser(@ModelAttribute("user") User user, BindingResult bindingResult,
-                             @RequestParam(value = "user_role") String userRole) {
+    public String createUser(ModelMap model, @ModelAttribute("user") @Valid User user,
+                             BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
+            model.addAttribute("roles", roleService.getRoles());
             return "new_user";
         }
-        Role role = new Role(userRole);
-        roleService.saveRole(role);
-        user.setRoles(Set.of(role));
         usersService.saveUser(user);
         return "redirect:/admin";
     }
@@ -62,7 +60,6 @@ public class AdminController {
         if (bindingResult.hasErrors()) {
             return "edit_user";
         }
-        user.setPassword(user.getPassword());
         usersService.updateUser(user);
         return "redirect:/admin";
     }
@@ -70,7 +67,6 @@ public class AdminController {
 
     @DeleteMapping("/{id}/delete")
     public String removeUserById(@PathVariable("id") Integer id) {
-        roleService.removeRoleById(id);
         usersService.removeUserById(id);
         return "redirect:/admin";
     }
