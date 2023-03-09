@@ -1,49 +1,52 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
-  <meta charset="UTF-8">
-  <title>Admin panel</title>
-  <link rel="stylesheet" type="text/css"
-        th:href="@{/css/style.css}"/>
+    <meta charset="UTF-8">
+    <title>Admin panel</title>
+    <link rel="stylesheet" type="text/css"
+          th:href="@{/css/style.css}"/>
 </head>
 <body>
 <h1>Welcome to Admin panel</h1>
 <br>
 <div>
-  <table border="1">
-    <tr>
-      <th>Id</th>
-      <th>Username</th>
-      <th>Name</th>
-      <th>Age</th>
-      <th>Email</th>
-      <th>ROLE</th>
-      <th>ACTIONS</th>
-    </tr>
+    <table border="1">
+        <tr>
+            <th>Id</th>
+            <th>Username</th>
+            <th>Name</th>
+            <th>Age</th>
+            <th>Email</th>
+            <th>ROLE</th>
+            <th>Edit</th>
+            <th>Delete</th>
+        </tr>
 
-    <tr th:each="user: ${users}">
-      <td th:utext="${user.getId()}"></td>
-      <td th:utext="${user.getUsername()}"></td>
-      <td th:utext="${user.getName()}"></td>
-      <td th:utext="${user.getAge()}"></td>
-      <td th:utext="${user.getEmail()}"></td>
-      <td>
-        <div th:each="role:${user.getRoles()}">[[${role.getName()}]]</div>
-      </td>
-      <td>
-        <form th:method="PATCH" th:action="@{admin/{id}/edit (id = ${user.getId()})}">
-          <input type="submit" value="Edit">
-        </form>
-        <form th:method="DELETE" th:action="@{admin/{id}/delete (id=${user.getId()})}">
-          <input type="submit" value="Delete">
-        </form>
-      </td>
-    </tr>
-  </table>
-  <br/>
-  <a href="/admin/new">Create user</a>
-  <br/>
-  <a href="/logout">Logout</a>
+        <tr th:each="user: ${users}">
+            <td th:utext="${user.getId()}"></td>
+            <td th:utext="${user.getUsername()}"></td>
+            <td th:utext="${user.getName()}"></td>
+            <td th:utext="${user.getAge()}"></td>
+            <td th:utext="${user.getEmail()}"></td>
+            <td>
+                <div th:each="role:${user.getRoles()}">[[${role.getName()}]]</div>
+            </td>
+            <td>
+                <form th:method="PATCH" th:action="@{admin/{id}/edit (id = ${user.getId()})}">
+                    <input type="submit" value="Edit">
+                </form>
+            </td>
+            <td>
+                <form th:method="DELETE" th:action="@{admin/{id}/delete (id=${user.getId()})}">
+                    <input type="submit" value="Delete">
+                </form>
+            </td>
+        </tr>
+    </table>
+    <br/>
+    <a href="/admin/new">Create user</a>
+    <br/>
+    <a href="/logout">Logout</a>
 </div>
 
 </body>
