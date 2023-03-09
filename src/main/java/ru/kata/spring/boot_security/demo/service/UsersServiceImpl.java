@@ -1,5 +1,6 @@
 package ru.kata.spring.boot_security.demo.service;
 
+import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -11,11 +12,6 @@ import ru.kata.spring.boot_security.demo.repository.UserRepository;
 import javax.transaction.Transactional;
 import java.util.List;
 import java.util.Optional;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import java.util.Collection;
-import ru.kata.spring.boot_security.demo.model.Role;
-import java.util.stream.Collectors;
 
 @Service
 public class UsersServiceImpl implements UsersService, UserDetailsService {
@@ -43,12 +39,9 @@ public class UsersServiceImpl implements UsersService, UserDetailsService {
 
     @Override
     public User getUserById(Integer id) {
-        Optional<User> userById = userRepository.findById(id);
-        if (userById.isPresent()) {
-            return userById.get();
-        } else {
-            throw new UsernameNotFoundException(String.format("User with %s not found", id));
-        }
+        Optional<User> oUser = userRepository.findById(id);
+
+        return oUser.orElse(null);
     }
 
     @Override
@@ -56,33 +49,31 @@ public class UsersServiceImpl implements UsersService, UserDetailsService {
         return userRepository.getUserByUsername(username);
     }
 
-
     @Transactional
     @Override
     public void updateUser(User user) {
-        user.setPassword(bCryptPasswordEncoder.encode(user.getPassword()));
+        if (!user.getPassword().isEmpty()) {
+            if (!getUserById(user.getId()).getPassword().equals(user.getPassword())) {
+                user.setPassword(bCryptPasswordEncoder.encode(user.getPassword()));
+            }
+        } else {
+            user.setPassword(getUserById(user.getId()).getPassword());
+        }
         userRepository.save(user);
     }
-
-
     @Transactional
     public void removeUserById(Integer id) {
         userRepository.deleteById(id);
     }
 
-    @Override
     @Transactional
+    @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        User user = getUserByUsername(username);
-        if (user == null) {
-            throw new UsernameNotFoundException(String.format("User %s not found", username));
+        if(userRepository.getUserByUsername(username) == null) {
+            throw new UsernameNotFoundException("Username not found!");
         }
-        return new org.springframework.security.core.userdetails.User(user.getUsername(), user.getPassword(),
-                mapRolesToAuthorities(user.getRoles()));
+        Hibernate.initialize(userRepository.getUserByUsername(username).getRoles());
+        return userRepository.getUserByUsername(username);
     }
 
-    private Collection<? extends GrantedAuthority> mapRolesToAuthorities(Collection<Role> roles) {
-        return roles.stream().map(r -> new SimpleGrantedAuthority(r.getName())).collect(Collectors.toList());
-    }
-    
 }
